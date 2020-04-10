@@ -13,44 +13,18 @@
 
 declare interface WindowOrWorkerGlobalScope {
   // methods
-  atob: typeof __textEncoding.atob;
-  btoa: typeof __textEncoding.btoa;
-  clearInterval: typeof __timers.clearInterval;
-  clearTimeout: typeof __timers.clearTimeout;
   fetch: typeof __fetch.fetch;
-  setInterval: typeof __timers.setInterval;
-  queueMicrotask: typeof __timers.queueMicrotask;
-  setTimeout: typeof __timers.setTimeout;
   // properties
-  console: __console.Console;
-  Blob: typeof __blob.DenoBlob;
   File: __domTypes.DomFileConstructor;
   CustomEvent: typeof __customEvent.CustomEvent;
   Event: typeof __event.Event;
   EventTarget: typeof __eventTarget.EventTarget;
-  URL: typeof __url.URL;
-  URLSearchParams: typeof __urlSearchParams.URLSearchParams;
   Headers: __domTypes.HeadersConstructor;
   FormData: __domTypes.FormDataConstructor;
-  TextEncoder: typeof __textEncoding.TextEncoder;
-  TextDecoder: typeof __textEncoding.TextDecoder;
+  ReadableStream: __domTypes.ReadableStreamConstructor;
   Request: __domTypes.RequestConstructor;
   Response: typeof __fetch.Response;
-  performance: __performanceUtil.Performance;
-  Worker: typeof __workers.WorkerImpl;
   location: __domTypes.Location;
-
-  addEventListener: (
-    type: string,
-    callback: __domTypes.EventListenerOrEventListenerObject | null,
-    options?: boolean | __domTypes.AddEventListenerOptions | undefined
-  ) => void;
-  dispatchEvent: (event: __domTypes.Event) => boolean;
-  removeEventListener: (
-    type: string,
-    callback: __domTypes.EventListenerOrEventListenerObject | null,
-    options?: boolean | __domTypes.EventListenerOptions | undefined
-  ) => void;
 }
 
 // This follows the WebIDL at: https://webassembly.github.io/spec/js-api/
@@ -66,7 +40,7 @@ declare namespace WebAssembly {
    * function is useful if it is necessary to a compile a module before it can
    * be instantiated (otherwise, the `WebAssembly.instantiate()` function
    * should be used). */
-  function compile(bufferSource: __domTypes.BufferSource): Promise<Module>;
+  function compile(bufferSource: BufferSource): Promise<Module>;
 
   /** Compiles a `WebAssembly.Module` directly from a streamed underlying
    * source. This function is useful if it is necessary to a compile a module
@@ -81,7 +55,7 @@ declare namespace WebAssembly {
    * The returned `Promise` resolves to both a compiled `WebAssembly.Module` and
    * its first `WebAssembly.Instance`. */
   function instantiate(
-    bufferSource: __domTypes.BufferSource,
+    bufferSource: BufferSource,
     importObject?: object
   ): Promise<WebAssemblyInstantiatedSource>;
 
@@ -103,7 +77,7 @@ declare namespace WebAssembly {
 
   /** Validates a given typed array of WebAssembly binary code, returning
    * whether the bytes form a valid wasm module (`true`) or not (`false`). */
-  function validate(bufferSource: __domTypes.BufferSource): boolean;
+  function validate(bufferSource: BufferSource): boolean;
 
   type ImportExportKind = "function" | "table" | "memory" | "global";
 
@@ -118,7 +92,7 @@ declare namespace WebAssembly {
   }
 
   class Module {
-    constructor(bufferSource: __domTypes.BufferSource);
+    constructor(bufferSource: BufferSource);
 
     /** Given a `Module` and string, returns a copy of the contents of all
      * custom sections in the module with the given string name. */
@@ -225,17 +199,25 @@ declare namespace WebAssembly {
   }
 }
 
-declare const atob: typeof __textEncoding.atob;
-declare const btoa: typeof __textEncoding.btoa;
-declare const clearInterval: typeof __timers.clearInterval;
-declare const clearTimeout: typeof __timers.clearTimeout;
 declare const fetch: typeof __fetch.fetch;
-declare const setInterval: typeof __timers.setInterval;
-declare const setTimeout: typeof __timers.setTimeout;
-declare const queueMicrotask: typeof __timers.queueMicrotask;
 
-declare const console: __console.Console;
-declare const Blob: typeof __blob.DenoBlob;
+/** Sets a timer which executes a function once after the timer expires. */
+declare function setTimeout(
+  cb: (...args: unknown[]) => void,
+  delay?: number,
+  ...args: unknown[]
+): number;
+/** Repeatedly calls a function , with a fixed time delay between each call. */
+declare function setInterval(
+  cb: (...args: unknown[]) => void,
+  delay?: number,
+  ...args: unknown[]
+): number;
+declare function clearTimeout(id?: number): void;
+declare function clearInterval(id?: number): void;
+declare function queueMicrotask(func: Function): void;
+
+declare const console: Console;
 declare const File: __domTypes.DomFileConstructor;
 declare const CustomEventInit: typeof __customEvent.CustomEventInit;
 declare const CustomEvent: typeof __customEvent.CustomEvent;
@@ -243,31 +225,27 @@ declare const EventInit: typeof __event.EventInit;
 declare const Event: typeof __event.Event;
 declare const EventListener: __domTypes.EventListener;
 declare const EventTarget: typeof __eventTarget.EventTarget;
-declare const URL: typeof __url.URL;
-declare const URLSearchParams: typeof __urlSearchParams.URLSearchParams;
 declare const Headers: __domTypes.HeadersConstructor;
 declare const location: __domTypes.Location;
 declare const FormData: __domTypes.FormDataConstructor;
-declare const TextEncoder: typeof __textEncoding.TextEncoder;
-declare const TextDecoder: typeof __textEncoding.TextDecoder;
+declare const ReadableStream: __domTypes.ReadableStreamConstructor;
 declare const Request: __domTypes.RequestConstructor;
 declare const Response: typeof __fetch.Response;
-declare const performance: __performanceUtil.Performance;
-declare const Worker: typeof __workers.WorkerImpl;
 
-declare const addEventListener: (
+declare function addEventListener(
   type: string,
   callback: __domTypes.EventListenerOrEventListenerObject | null,
   options?: boolean | __domTypes.AddEventListenerOptions | undefined
-) => void;
-declare const dispatchEvent: (event: __domTypes.Event) => boolean;
-declare const removeEventListener: (
+): void;
+
+declare function dispatchEvent(event: __domTypes.Event): boolean;
+
+declare function removeEventListener(
   type: string,
   callback: __domTypes.EventListenerOrEventListenerObject | null,
   options?: boolean | __domTypes.EventListenerOptions | undefined
-) => void;
+): void;
 
-declare type Blob = __domTypes.Blob;
 declare type Body = __domTypes.Body;
 declare type File = __domTypes.DomFile;
 declare type CustomEventInit = __domTypes.CustomEventInit;
@@ -276,15 +254,11 @@ declare type EventInit = __domTypes.EventInit;
 declare type Event = __domTypes.Event;
 declare type EventListener = __domTypes.EventListener;
 declare type EventTarget = __domTypes.EventTarget;
-declare type URL = __url.URL;
-declare type URLSearchParams = __domTypes.URLSearchParams;
 declare type Headers = __domTypes.Headers;
 declare type FormData = __domTypes.FormData;
-declare type TextEncoder = __textEncoding.TextEncoder;
-declare type TextDecoder = __textEncoding.TextDecoder;
+declare type ReadableStream<R = any> = __domTypes.ReadableStream<R>;
 declare type Request = __domTypes.Request;
 declare type Response = __domTypes.Response;
-declare type Worker = __workers.Worker;
 
 declare interface ImportMeta {
   url: string;
@@ -292,14 +266,9 @@ declare interface ImportMeta {
 }
 
 declare namespace __domTypes {
-  export type BufferSource = ArrayBufferView | ArrayBuffer;
   export type HeadersInit =
     | Headers
     | Array<[string, string]>
-    | Record<string, string>;
-  export type URLSearchParamsInit =
-    | string
-    | string[][]
     | Record<string, string>;
   type BodyInit =
     | Blob
@@ -316,7 +285,6 @@ declare namespace __domTypes {
     | "origin-only"
     | "origin-when-cross-origin"
     | "unsafe-url";
-  export type BlobPart = BufferSource | Blob | string;
   export type FormDataEntryValue = DomFile | string;
   export interface DomIterable<K, V> {
     keys(): IterableIterator<K>;
@@ -327,11 +295,6 @@ declare namespace __domTypes {
       callback: (value: V, key: K, parent: this) => void,
       thisArg?: any
     ): void;
-  }
-  type EndingType = "transparent" | "native";
-  export interface BlobPropertyBag {
-    type?: string;
-    ending?: EndingType;
   }
   interface AbortSignalEventMap {
     abort: ProgressEvent;
@@ -375,52 +338,6 @@ declare namespace __domTypes {
     lengthComputable?: boolean;
     loaded?: number;
     total?: number;
-  }
-  export interface URLSearchParams extends DomIterable<string, string> {
-    /**
-     * Appends a specified key/value pair as a new search parameter.
-     */
-    append(name: string, value: string): void;
-    /**
-     * Deletes the given search parameter, and its associated value,
-     * from the list of all search parameters.
-     */
-    delete(name: string): void;
-    /**
-     * Returns the first value associated to the given search parameter.
-     */
-    get(name: string): string | null;
-    /**
-     * Returns all the values association with a given search parameter.
-     */
-    getAll(name: string): string[];
-    /**
-     * Returns a Boolean indicating if such a search parameter exists.
-     */
-    has(name: string): boolean;
-    /**
-     * Sets the value associated to a given search parameter to the given value.
-     * If there were several values, delete the others.
-     */
-    set(name: string, value: string): void;
-    /**
-     * Sort all key/value pairs contained in this object in place
-     * and return undefined. The sort order is according to Unicode
-     * code points of the keys.
-     */
-    sort(): void;
-    /**
-     * Returns a query string suitable for use in a URL.
-     */
-    toString(): string;
-    /**
-     * Iterates over each name-value pair in the query
-     * and invokes the given function.
-     */
-    forEach(
-      callbackfn: (value: string, key: string, parent: this) => void,
-      thisArg?: any
-    ): void;
   }
   export interface EventInit {
     bubbles?: boolean;
@@ -551,6 +468,27 @@ declare namespace __domTypes {
     preventClose?: boolean;
     signal?: AbortSignal;
   }
+  export interface UnderlyingSource<R = any> {
+    cancel?: ReadableStreamErrorCallback;
+    pull?: ReadableStreamDefaultControllerCallback<R>;
+    start?: ReadableStreamDefaultControllerCallback<R>;
+    type?: undefined;
+  }
+  export interface ReadableStreamErrorCallback {
+    (reason: any): void | PromiseLike<void>;
+  }
+
+  export interface ReadableStreamDefaultControllerCallback<R> {
+    (controller: ReadableStreamDefaultController<R>): void | PromiseLike<void>;
+  }
+
+  export interface ReadableStreamDefaultController<R> {
+    readonly desiredSize: number;
+    enqueue(chunk?: R): void;
+    close(): void;
+    error(e?: any): void;
+  }
+
   /** This Streams API interface represents a readable stream of byte data. The
    * Fetch API offers a concrete instance of a ReadableStream through the body
    * property of a Response object. */
@@ -574,6 +512,12 @@ declare namespace __domTypes {
     */
     tee(): [ReadableStream<R>, ReadableStream<R>];
   }
+
+  export interface ReadableStreamConstructor<R = any> {
+    new (src?: UnderlyingSource<R>): ReadableStream<R>;
+    prototype: ReadableStream<R>;
+  }
+
   export interface ReadableStreamReader<R = any> {
     cancel(reason: any): Promise<void>;
     read(): Promise<ReadableStreamReadResult<R>>;
@@ -612,19 +556,6 @@ declare namespace __domTypes {
   export interface FormDataConstructor {
     new (): FormData;
     prototype: FormData;
-  }
-  /** A blob object represents a file-like object of immutable, raw data. */
-  export interface Blob {
-    /** The size, in bytes, of the data contained in the `Blob` object. */
-    readonly size: number;
-    /** A string indicating the media type of the data contained in the `Blob`.
-     * If the type is unknown, this string is empty.
-     */
-    readonly type: string;
-    /** Returns a new `Blob` object containing the data in the specified range of
-     * bytes of the source `Blob`.
-     */
-    slice(start?: number, end?: number, contentType?: string): Blob;
   }
   export interface Body {
     /** A simple getter used to expose a `ReadableStream` of the body contents. */
@@ -929,103 +860,93 @@ declare namespace __domTypes {
   }
 }
 
-declare namespace __blob {
-  export class DenoBlob implements __domTypes.Blob {
-    readonly size: number;
-    readonly type: string;
-    /** A blob object represents a file-like object of immutable, raw data. */
-    constructor(
-      blobParts?: __domTypes.BlobPart[],
-      options?: __domTypes.BlobPropertyBag
-    );
-    slice(start?: number, end?: number, contentType?: string): DenoBlob;
-  }
+type BufferSource = ArrayBufferView | ArrayBuffer;
+type BlobPart = BufferSource | Blob | string;
+
+interface BlobPropertyBag {
+  type?: string;
+  ending?: "transparent" | "native";
 }
 
-declare namespace __console {
-  type InspectOptions = Partial<{
-    showHidden: boolean;
-    depth: number;
-    colors: boolean;
-    indentLevel: number;
-  }>;
-  export class CSI {
-    static kClear: string;
-    static kClearScreenDown: string;
-  }
-  const isConsoleInstance: unique symbol;
-  export class Console {
-    indentLevel: number;
-    [isConsoleInstance]: boolean;
-    /** Writes the arguments to stdout */
-    log: (...args: unknown[]) => void;
-    /** Writes the arguments to stdout */
-    debug: (...args: unknown[]) => void;
-    /** Writes the arguments to stdout */
-    info: (...args: unknown[]) => void;
-    /** Writes the properties of the supplied `obj` to stdout */
-    dir: (
-      obj: unknown,
-      options?: Partial<{
-        showHidden: boolean;
-        depth: number;
-        colors: boolean;
-        indentLevel: number;
-      }>
-    ) => void;
+/** A file-like object of immutable, raw data. Blobs represent data that isn't necessarily in a JavaScript-native format. The File interface is based on Blob, inheriting blob functionality and expanding it to support files on the user's system. */
+interface Blob {
+  readonly size: number;
+  readonly type: string;
+  arrayBuffer(): Promise<ArrayBuffer>;
+  slice(start?: number, end?: number, contentType?: string): Blob;
+  stream(): ReadableStream;
+  text(): Promise<string>;
+}
 
-    /** From MDN:
-     * Displays an interactive tree of the descendant elements of
-     * the specified XML/HTML element. If it is not possible to display
-     * as an element the JavaScript Object view is shown instead.
-     * The output is presented as a hierarchical listing of expandable
-     * nodes that let you see the contents of child nodes.
-     *
-     * Since we write to stdout, we can't display anything interactive
-     * we just fall back to `console.dir`.
-     */
-    dirxml: (
-      obj: unknown,
-      options?: Partial<{
-        showHidden: boolean;
-        depth: number;
-        colors: boolean;
-        indentLevel: number;
-      }>
-    ) => void;
+declare const Blob: {
+  prototype: Blob;
+  new (blobParts?: BlobPart[], options?: BlobPropertyBag): Blob;
+};
 
-    /** Writes the arguments to stdout */
-    warn: (...args: unknown[]) => void;
-    /** Writes the arguments to stdout */
-    error: (...args: unknown[]) => void;
-    /** Writes an error message to stdout if the assertion is `false`. If the
-     * assertion is `true`, nothing happens.
-     *
-     * ref: https://console.spec.whatwg.org/#assert
-     */
-    assert: (condition?: boolean, ...args: unknown[]) => void;
-    count: (label?: string) => void;
-    countReset: (label?: string) => void;
-    table: (data: unknown, properties?: string[] | undefined) => void;
-    time: (label?: string) => void;
-    timeLog: (label?: string, ...args: unknown[]) => void;
-    timeEnd: (label?: string) => void;
-    group: (...label: unknown[]) => void;
-    groupCollapsed: (...label: unknown[]) => void;
-    groupEnd: () => void;
-    clear: () => void;
-    trace: (...args: unknown[]) => void;
-    static [Symbol.hasInstance](instance: Console): boolean;
-  }
-  /** A symbol which can be used as a key for a custom method which will be called
-   * when `Deno.inspect()` is called, or when the object is logged to the console.
+declare const isConsoleInstance: unique symbol;
+
+declare class Console {
+  indentLevel: number;
+  [isConsoleInstance]: boolean;
+  /** Writes the arguments to stdout */
+  log: (...args: unknown[]) => void;
+  /** Writes the arguments to stdout */
+  debug: (...args: unknown[]) => void;
+  /** Writes the arguments to stdout */
+  info: (...args: unknown[]) => void;
+  /** Writes the properties of the supplied `obj` to stdout */
+  dir: (
+    obj: unknown,
+    options?: Partial<{
+      showHidden: boolean;
+      depth: number;
+      colors: boolean;
+      indentLevel: number;
+    }>
+  ) => void;
+
+  /** From MDN:
+   * Displays an interactive tree of the descendant elements of
+   * the specified XML/HTML element. If it is not possible to display
+   * as an element the JavaScript Object view is shown instead.
+   * The output is presented as a hierarchical listing of expandable
+   * nodes that let you see the contents of child nodes.
+   *
+   * Since we write to stdout, we can't display anything interactive
+   * we just fall back to `console.dir`.
    */
-  export const customInspect: unique symbol;
-  /**
-   * `inspect()` converts input into string that has the same format
-   * as printed by `console.log(...)`;
+  dirxml: (
+    obj: unknown,
+    options?: Partial<{
+      showHidden: boolean;
+      depth: number;
+      colors: boolean;
+      indentLevel: number;
+    }>
+  ) => void;
+
+  /** Writes the arguments to stdout */
+  warn: (...args: unknown[]) => void;
+  /** Writes the arguments to stdout */
+  error: (...args: unknown[]) => void;
+  /** Writes an error message to stdout if the assertion is `false`. If the
+   * assertion is `true`, nothing happens.
+   *
+   * ref: https://console.spec.whatwg.org/#assert
    */
-  export function inspect(value: unknown, options?: InspectOptions): string;
+  assert: (condition?: boolean, ...args: unknown[]) => void;
+  count: (label?: string) => void;
+  countReset: (label?: string) => void;
+  table: (data: unknown, properties?: string[] | undefined) => void;
+  time: (label?: string) => void;
+  timeLog: (label?: string, ...args: unknown[]) => void;
+  timeEnd: (label?: string) => void;
+  group: (...label: unknown[]) => void;
+  groupCollapsed: (...label: unknown[]) => void;
+  groupEnd: () => void;
+  clear: () => void;
+  trace: (...args: unknown[]) => void;
+  static [Symbol.hasInstance](instance: Console): boolean;
 }
 
 declare namespace __event {
@@ -1173,112 +1094,19 @@ declare namespace __eventTarget {
   }
 }
 
-declare namespace __io {
-  /** UNSTABLE: maybe remove "SEEK_" prefix. Maybe capitalization wrong. */
-  export enum SeekMode {
-    SEEK_START = 0,
-    SEEK_CURRENT = 1,
-    SEEK_END = 2,
-  }
-  export interface Reader {
-    /** Reads up to p.byteLength bytes into `p`. It resolves to the number
-     * of bytes read (`0` < `n` <= `p.byteLength`) and rejects if any error encountered.
-     * Even if `read()` returns `n` < `p.byteLength`, it may use all of `p` as
-     * scratch space during the call. If some data is available but not
-     * `p.byteLength` bytes, `read()` conventionally returns what is available
-     * instead of waiting for more.
-     *
-     * When `read()` encounters end-of-file condition, it returns EOF symbol.
-     *
-     * When `read()` encounters an error, it rejects with an error.
-     *
-     * Callers should always process the `n` > `0` bytes returned before
-     * considering the EOF. Doing so correctly handles I/O errors that happen
-     * after reading some bytes and also both of the allowed EOF behaviors.
-     *
-     * Implementations must not retain `p`.
-     */
-    read(p: Uint8Array): Promise<number | Deno.EOF>;
-  }
-  export interface SyncReader {
-    readSync(p: Uint8Array): number | Deno.EOF;
-  }
-  export interface Writer {
-    /** Writes `p.byteLength` bytes from `p` to the underlying data
-     * stream. It resolves to the number of bytes written from `p` (`0` <= `n` <=
-     * `p.byteLength`) and any error encountered that caused the write to stop
-     * early. `write()` must return a non-null error if it returns `n` <
-     * `p.byteLength`. write() must not modify the slice data, even temporarily.
-     *
-     * Implementations must not retain `p`.
-     */
-    write(p: Uint8Array): Promise<number>;
-  }
-  export interface SyncWriter {
-    writeSync(p: Uint8Array): number;
-  }
-  export interface Closer {
-    close(): void;
-  }
-  export interface Seeker {
-    /** Seek sets the offset for the next `read()` or `write()` to offset,
-     * interpreted according to `whence`: `SEEK_START` means relative to the
-     * start of the file, `SEEK_CURRENT` means relative to the current offset,
-     * and `SEEK_END` means relative to the end. Seek returns the new offset
-     * relative to the start of the file and an error, if any.
-     *
-     * Seeking to an offset before the start of the file is an error. Seeking to
-     * any positive offset is legal, but the behavior of subsequent I/O operations
-     * on the underlying object is implementation-dependent.
-     * It returns the cursor position.
-     */
-    seek(offset: number, whence: SeekMode): Promise<number>;
-  }
-  export interface SyncSeeker {
-    seekSync(offset: number, whence: SeekMode): number;
-  }
-  export interface ReadCloser extends Reader, Closer {}
-  export interface WriteCloser extends Writer, Closer {}
-  export interface ReadSeeker extends Reader, Seeker {}
-  export interface WriteSeeker extends Writer, Seeker {}
-  export interface ReadWriteCloser extends Reader, Writer, Closer {}
-  export interface ReadWriteSeeker extends Reader, Writer, Seeker {}
-
-  /** UNSTABLE: controversial.
-   *
-   * Copies from `src` to `dst` until either `EOF` is reached on `src`
-   * or an error occurs. It returns the number of bytes copied and the first
-   * error encountered while copying, if any.
-   *
-   * Because `copy()` is defined to read from `src` until `EOF`, it does not
-   * treat an `EOF` from `read()` as an error to be reported.
-   */
-  export function copy(dst: Writer, src: Reader): Promise<number>;
-
-  /** UNSTABLE: Make Reader into AsyncIterable? Remove this?
-   *
-   * Turns `r` into async iterator.
-   *
-   *      for await (const chunk of toAsyncIterator(reader)) {
-   *          console.log(chunk)
-   *      }
-   */
-  export function toAsyncIterator(r: Reader): AsyncIterableIterator<Uint8Array>;
-}
-
 declare namespace __fetch {
   class Body
     implements
       __domTypes.Body,
       __domTypes.ReadableStream<Uint8Array>,
-      __io.ReadCloser {
+      Deno.ReadCloser {
     readonly contentType: string;
     bodyUsed: boolean;
     readonly locked: boolean;
     readonly body: __domTypes.ReadableStream<Uint8Array>;
     constructor(rid: number, contentType: string);
     arrayBuffer(): Promise<ArrayBuffer>;
-    blob(): Promise<__domTypes.Blob>;
+    blob(): Promise<Blob>;
     formData(): Promise<__domTypes.FormData>;
     json(): Promise<any>;
     text(): Promise<string>;
@@ -1312,7 +1140,7 @@ declare namespace __fetch {
       body_?: null | Body
     );
     arrayBuffer(): Promise<ArrayBuffer>;
-    blob(): Promise<__domTypes.Blob>;
+    blob(): Promise<Blob>;
     formData(): Promise<__domTypes.FormData>;
     json(): Promise<any>;
     text(): Promise<string>;
@@ -1322,229 +1150,217 @@ declare namespace __fetch {
   }
   /** Fetch a resource from the network. */
   export function fetch(
-    input: __domTypes.Request | __url.URL | string,
+    input: __domTypes.Request | URL | string,
     init?: __domTypes.RequestInit
   ): Promise<Response>;
 }
 
-declare namespace __textEncoding {
-  export function atob(s: string): string;
-  /** Creates a base-64 ASCII string from the input string. */
-  export function btoa(s: string): string;
-  export interface TextDecodeOptions {
-    stream?: false;
-  }
-  export interface TextDecoderOptions {
-    fatal?: boolean;
-    ignoreBOM?: boolean;
-  }
-  export class TextDecoder {
-    /** Returns encoding's name, lowercased. */
-    readonly encoding: string;
-    /** Returns `true` if error mode is "fatal", and `false` otherwise. */
-    readonly fatal: boolean;
-    /** Returns `true` if ignore BOM flag is set, and `false` otherwise. */
-    readonly ignoreBOM = false;
-    constructor(label?: string, options?: TextDecoderOptions);
-    /** Returns the result of running encoding's decoder. */
-    decode(
-      input?: __domTypes.BufferSource,
-      options?: TextDecodeOptions
-    ): string;
-    readonly [Symbol.toStringTag]: string;
-  }
-  interface TextEncoderEncodeIntoResult {
-    read: number;
-    written: number;
-  }
-  export class TextEncoder {
-    /** Returns "utf-8". */
-    readonly encoding = "utf-8";
-    /** Returns the result of running UTF-8's encoder. */
-    encode(input?: string): Uint8Array;
-    encodeInto(input: string, dest: Uint8Array): TextEncoderEncodeIntoResult;
-    readonly [Symbol.toStringTag]: string;
-  }
+declare function atob(s: string): string;
+
+/** Creates a base-64 ASCII string from the input string. */
+declare function btoa(s: string): string;
+
+declare class TextDecoder {
+  /** Returns encoding's name, lowercased. */
+  readonly encoding: string;
+  /** Returns `true` if error mode is "fatal", and `false` otherwise. */
+  readonly fatal: boolean;
+  /** Returns `true` if ignore BOM flag is set, and `false` otherwise. */
+  readonly ignoreBOM = false;
+  constructor(
+    label?: string,
+    options?: { fatal?: boolean; ignoreBOM?: boolean }
+  );
+  /** Returns the result of running encoding's decoder. */
+  decode(input?: BufferSource, options?: { stream?: false }): string;
+  readonly [Symbol.toStringTag]: string;
 }
 
-declare namespace __timers {
-  export type Args = unknown[];
-  /** Sets a timer which executes a function once after the timer expires. */
-  export function setTimeout(
-    cb: (...args: Args) => void,
-    delay?: number,
-    ...args: Args
-  ): number;
-  /** Repeatedly calls a function , with a fixed time delay between each call. */
-  export function setInterval(
-    cb: (...args: Args) => void,
-    delay?: number,
-    ...args: Args
-  ): number;
-  export function clearTimeout(id?: number): void;
-  export function clearInterval(id?: number): void;
-  export function queueMicrotask(func: Function): void;
+declare class TextEncoder {
+  /** Returns "utf-8". */
+  readonly encoding = "utf-8";
+  /** Returns the result of running UTF-8's encoder. */
+  encode(input?: string): Uint8Array;
+  encodeInto(
+    input: string,
+    dest: Uint8Array
+  ): { read: number; written: number };
+  readonly [Symbol.toStringTag]: string;
 }
 
-declare namespace __urlSearchParams {
-  export class URLSearchParams {
-    constructor(init?: string | string[][] | Record<string, string>);
-    /** Appends a specified key/value pair as a new search parameter.
-     *
-     *       searchParams.append('name', 'first');
-     *       searchParams.append('name', 'second');
-     */
-    append(name: string, value: string): void;
-    /** Deletes the given search parameter and its associated value,
-     * from the list of all search parameters.
-     *
-     *       searchParams.delete('name');
-     */
-    delete(name: string): void;
-    /** Returns all the values associated with a given search parameter
-     * as an array.
-     *
-     *       searchParams.getAll('name');
-     */
-    getAll(name: string): string[];
-    /** Returns the first value associated to the given search parameter.
-     *
-     *       searchParams.get('name');
-     */
-    get(name: string): string | null;
-    /** Returns a Boolean that indicates whether a parameter with the
-     * specified name exists.
-     *
-     *       searchParams.has('name');
-     */
-    has(name: string): boolean;
-    /** Sets the value associated with a given search parameter to the
-     * given value. If there were several matching values, this method
-     * deletes the others. If the search parameter doesn't exist, this
-     * method creates it.
-     *
-     *       searchParams.set('name', 'value');
-     */
-    set(name: string, value: string): void;
-    /** Sort all key/value pairs contained in this object in place and
-     * return undefined. The sort order is according to Unicode code
-     * points of the keys.
-     *
-     *       searchParams.sort();
-     */
-    sort(): void;
-    /** Calls a function for each element contained in this object in
-     * place and return undefined. Optionally accepts an object to use
-     * as this when executing callback as second argument.
-     *
-     *       searchParams.forEach((value, key, parent) => {
-     *         console.log(value, key, parent);
-     *       });
-     *
-     */
-    forEach(
-      callbackfn: (value: string, key: string, parent: this) => void,
-      thisArg?: any
-    ): void;
-    /** Returns an iterator allowing to go through all keys contained
-     * in this object.
-     *
-     *       for (const key of searchParams.keys()) {
-     *         console.log(key);
-     *       }
-     */
-    keys(): IterableIterator<string>;
-    /** Returns an iterator allowing to go through all values contained
-     * in this object.
-     *
-     *       for (const value of searchParams.values()) {
-     *         console.log(value);
-     *       }
-     */
-    values(): IterableIterator<string>;
-    /** Returns an iterator allowing to go through all key/value
-     * pairs contained in this object.
-     *
-     *       for (const [key, value] of searchParams.entries()) {
-     *         console.log(key, value);
-     *       }
-     */
-    entries(): IterableIterator<[string, string]>;
-    /** Returns an iterator allowing to go through all key/value
-     * pairs contained in this object.
-     *
-     *       for (const [key, value] of searchParams[Symbol.iterator]()) {
-     *         console.log(key, value);
-     *       }
-     */
-    [Symbol.iterator](): IterableIterator<[string, string]>;
-    /** Returns a query string suitable for use in a URL.
-     *
-     *        searchParams.toString();
-     */
-    toString(): string;
-  }
+interface URLSearchParams {
+  /** Appends a specified key/value pair as a new search parameter.
+   *
+   *       let searchParams = new URLSearchParams();
+   *       searchParams.append('name', 'first');
+   *       searchParams.append('name', 'second');
+   */
+  append(name: string, value: string): void;
+
+  /** Deletes the given search parameter and its associated value,
+   * from the list of all search parameters.
+   *
+   *       let searchParams = new URLSearchParams([['name', 'value']]);
+   *       searchParams.delete('name');
+   */
+  delete(name: string): void;
+
+  /** Returns all the values associated with a given search parameter
+   * as an array.
+   *
+   *       searchParams.getAll('name');
+   */
+  getAll(name: string): string[];
+
+  /** Returns the first value associated to the given search parameter.
+   *
+   *       searchParams.get('name');
+   */
+  get(name: string): string | null;
+
+  /** Returns a Boolean that indicates whether a parameter with the
+   * specified name exists.
+   *
+   *       searchParams.has('name');
+   */
+  has(name: string): boolean;
+
+  /** Sets the value associated with a given search parameter to the
+   * given value. If there were several matching values, this method
+   * deletes the others. If the search parameter doesn't exist, this
+   * method creates it.
+   *
+   *       searchParams.set('name', 'value');
+   */
+  set(name: string, value: string): void;
+
+  /** Sort all key/value pairs contained in this object in place and
+   * return undefined. The sort order is according to Unicode code
+   * points of the keys.
+   *
+   *       searchParams.sort();
+   */
+  sort(): void;
+
+  /** Calls a function for each element contained in this object in
+   * place and return undefined. Optionally accepts an object to use
+   * as this when executing callback as second argument.
+   *
+   *       const params = new URLSearchParams([["a", "b"], ["c", "d"]]);
+   *       params.forEach((value, key, parent) => {
+   *         console.log(value, key, parent);
+   *       });
+   *
+   */
+  forEach(
+    callbackfn: (value: string, key: string, parent: this) => void,
+    thisArg?: any
+  ): void;
+
+  /** Returns an iterator allowing to go through all keys contained
+   * in this object.
+   *
+   *       const params = new URLSearchParams([["a", "b"], ["c", "d"]]);
+   *       for (const key of params.keys()) {
+   *         console.log(key);
+   *       }
+   */
+  keys(): IterableIterator<string>;
+
+  /** Returns an iterator allowing to go through all values contained
+   * in this object.
+   *
+   *       const params = new URLSearchParams([["a", "b"], ["c", "d"]]);
+   *       for (const value of params.values()) {
+   *         console.log(value);
+   *       }
+   */
+  values(): IterableIterator<string>;
+
+  /** Returns an iterator allowing to go through all key/value
+   * pairs contained in this object.
+   *
+   *       const params = new URLSearchParams([["a", "b"], ["c", "d"]]);
+   *       for (const [key, value] of params.entries()) {
+   *         console.log(key, value);
+   *       }
+   */
+  entries(): IterableIterator<[string, string]>;
+
+  /** Returns an iterator allowing to go through all key/value
+   * pairs contained in this object.
+   *
+   *       const params = new URLSearchParams([["a", "b"], ["c", "d"]]);
+   *       for (const [key, value] of params) {
+   *         console.log(key, value);
+   *       }
+   */
+  [Symbol.iterator](): IterableIterator<[string, string]>;
+
+  /** Returns a query string suitable for use in a URL.
+   *
+   *        searchParams.toString();
+   */
+  toString(): string;
 }
 
-declare namespace __url {
-  export interface URL {
-    hash: string;
-    host: string;
-    hostname: string;
-    href: string;
-    readonly origin: string;
-    password: string;
-    pathname: string;
-    port: string;
-    protocol: string;
-    search: string;
-    readonly searchParams: __urlSearchParams.URLSearchParams;
-    username: string;
-    toString(): string;
-    toJSON(): string;
-  }
+declare const URLSearchParams: {
+  prototype: URLSearchParams;
+  new (
+    init?: string[][] | Record<string, string> | string | URLSearchParams
+  ): URLSearchParams;
+  toString(): string;
+};
 
-  export const URL: {
-    prototype: URL;
-    new (url: string, base?: string | URL): URL;
-    createObjectURL(object: __domTypes.Blob): string;
-    revokeObjectURL(url: string): void;
-  };
+/** The URL interface represents an object providing static methods used for creating object URLs. */
+interface URL {
+  hash: string;
+  host: string;
+  hostname: string;
+  href: string;
+  toString(): string;
+  readonly origin: string;
+  password: string;
+  pathname: string;
+  port: string;
+  protocol: string;
+  search: string;
+  readonly searchParams: URLSearchParams;
+  username: string;
+  toJSON(): string;
 }
 
-declare namespace __workers {
-  export interface Worker {
-    onerror?: (e: Event) => void;
-    onmessage?: (e: { data: any }) => void;
-    onmessageerror?: () => void;
-    postMessage(data: any): void;
-    terminate(): void;
-  }
-  export interface WorkerOptions {
-    type?: "classic" | "module";
-    name?: string;
-  }
-  export class WorkerImpl implements Worker {
-    onerror?: (e: Event) => void;
-    onmessage?: (data: any) => void;
-    onmessageerror?: () => void;
-    constructor(specifier: string, options?: WorkerOptions);
-    postMessage(data: any): void;
-    terminate(): void;
-  }
+declare const URL: {
+  prototype: URL;
+  new (url: string, base?: string | URL): URL;
+  createObjectURL(object: any): string;
+  revokeObjectURL(url: string): void;
+};
+
+declare class Worker {
+  onerror?: (e: Event) => void;
+  onmessage?: (data: any) => void;
+  onmessageerror?: () => void;
+  constructor(
+    specifier: string,
+    options?: {
+      type?: "classic" | "module";
+      name?: string;
+    }
+  );
+  postMessage(data: any): void;
+  terminate(): void;
 }
 
-declare namespace __performanceUtil {
-  export class Performance {
-    /** Returns a current time from Deno's start in milliseconds.
-     *
-     * Use the flag --allow-hrtime return a precise value.
-     *
-     *       const t = performance.now();
-     *       console.log(`${t} ms since start!`);
-     */
-    now(): number;
-  }
+declare namespace performance {
+  /** Returns a current time from Deno's start in milliseconds.
+   *
+   * Use the flag --allow-hrtime return a precise value.
+   *
+   *       const t = performance.now();
+   *       console.log(`${t} ms since start!`);
+   */
+  export function now(): number;
 }
 
 /* eslint-enable @typescript-eslint/no-unused-vars, @typescript-eslint/no-empty-interface, @typescript-eslint/no-explicit-any */
