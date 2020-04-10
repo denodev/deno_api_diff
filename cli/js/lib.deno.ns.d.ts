@@ -38,7 +38,7 @@ declare namespace Deno {
   enum TestStatus {
     Passed = "passed",
     Failed = "failed",
-    Ignored = "ignored"
+    Ignored = "ignored",
   }
 
   interface TestResult {
@@ -60,7 +60,7 @@ declare namespace Deno {
     Start = "start",
     TestStart = "testStart",
     TestEnd = "testEnd",
-    End = "end"
+    End = "end",
   }
 
   interface TestEventStart {
@@ -134,9 +134,11 @@ declare namespace Deno {
    */
   export function loadavg(): number[];
 
-  /** Get the `hostname`. Requires `allow-env` permission.
+  /** Get the `hostname` of the machine the Deno process is running on.
    *
    *       console.log(Deno.hostname());
+   *
+   *  Requires `allow-env` permission.
    */
   export function hostname(): string;
 
@@ -146,34 +148,35 @@ declare namespace Deno {
    */
   export function osRelease(): string;
 
-  /** Exit the Deno process with optional exit code. */
+  /** Exit the Deno process with optional exit code. If no exit code is supplied
+   * then Deno will exit with return code of 0.
+   *
+   *       Deno.exit(5);
+   */
   export function exit(code?: number): never;
 
-  /** Returns a snapshot of the environment variables at invocation. Mutating a
-   * property in the object will set that variable in the environment for the
-   * process. The environment object will only accept `string`s as values.
+  /** Without any parameters, this will return a snapshot of the environment
+   * variables at invocation. Changing a property in the object will set that
+   * variable in the environment for the process. The environment object will
+   * only accept `string`s as values.
+   *
+   * Passing in a `string` key parameter will return the value for that environment
+   * variable, or undefined if that key doesn't exist.
    *
    *       const myEnv = Deno.env();
    *       console.log(myEnv.SHELL);
    *       myEnv.TEST_VAR = "HELLO";
    *       const newEnv = Deno.env();
-   *       console.log(myEnv.TEST_VAR == newEnv.TEST_VAR);
+   *       console.log(myEnv.TEST_VAR === newEnv.TEST_VAR);  //outputs "true"
+   *       console.log(Deno.env("TEST_VAR"));  //outputs "HELLO"
+   *       console.log(Deno.env("MADE_UP_VAR"));  //outputs "Undefined"
    *
    * Requires `allow-env` permission. */
   export function env(): {
     [index: string]: string;
   };
 
-  /** Returns the value of an environment variable at invocation. If the
-   * variable is not present, `undefined` will be returned.
-   *
-   *       const myEnv = Deno.env();
-   *       console.log(myEnv.SHELL);
-   *       myEnv.TEST_VAR = "HELLO";
-   *       const newEnv = Deno.env();
-   *       console.log(myEnv.TEST_VAR == newEnv.TEST_VAR);
-   *
-   * Requires `allow-env` permission. */
+  /** See overloaded parent function Deno.env() */
   export function env(key: string): string | undefined;
 
   /** **UNSTABLE** */
@@ -195,11 +198,13 @@ declare namespace Deno {
     | "tmp"
     | "video";
 
-  // TODO(ry) markdown in jsdoc broken https://deno.land/typedoc/index.html#dir
   /**
-   * **UNSTABLE**: Might rename method `dir` and type alias `DirKind`.
+   * **UNSTABLE**: Currently under evaluation to decide if method name `dir` and
+   * parameter type alias name `DirKind` should be renamed.
    *
    * Returns the user and platform specific directories.
+   *
+   *       const homeDirectory = Deno.dir("home");
    *
    * Requires `allow-env` permission.
    *
@@ -209,6 +214,14 @@ declare namespace Deno {
    * Argument values: `"home"`, `"cache"`, `"config"`, `"executable"`, `"data"`,
    * `"data_local"`, `"audio"`, `"desktop"`, `"document"`, `"download"`,
    * `"font"`, `"picture"`, `"public"`, `"template"`, `"tmp"`, `"video"`
+   *
+   * `"home"`
+   *
+   * |Platform | Value                                    | Example                |
+   * | ------- | -----------------------------------------| -----------------------|
+   * | Linux   | `$HOME`                                  | /home/alice            |
+   * | macOS   | `$HOME`                                  | /Users/alice           |
+   * | Windows | `{FOLDERID_Profile}`                     | C:\Users\Alice         |
    *
    * `"cache"`
    *
@@ -336,17 +349,22 @@ declare namespace Deno {
   /**
    * Returns the path to the current deno executable.
    *
+   *       console.log(Deno.execPath());  //e.g. "/home/alice/.local/bin/deno"
+   *
    * Requires `allow-env` permission.
    */
   export function execPath(): string;
 
   /**
-   * **UNSTABLE**: maybe needs permissions.
+   * **UNSTABLE**: Currently under evaluation to decide if explicit permission is
+   * required to get the value of the current working directory.
    *
    * Return a string representing the current working directory.
    *
    * If the current directory can be reached via multiple paths (due to symbolic
    * links), `cwd()` may return any one of them.
+   *
+   *       const currentWorkingDirectory = Deno.cwd();
    *
    * Throws `Deno.errors.NotFound` if directory not available.
    */
@@ -384,7 +402,7 @@ declare namespace Deno {
   export enum SeekMode {
     SEEK_START = 0,
     SEEK_CURRENT = 1,
-    SEEK_END = 2
+    SEEK_END = 2,
   }
 
   /** **UNSTABLE**: might make `Reader` into iterator of some sort. */
@@ -501,8 +519,16 @@ declare namespace Deno {
    * error occurs. It resolves to the number of bytes copied or rejects with
    * the first error encountered while copying.
    *
+   *       const source = await Deno.open("my_file.txt");
+   *       const buffer = new Deno.Buffer()
+   *       const bytesCopied1 = await Deno.copy(Deno.stdout, source);
+   *       const bytesCopied2 = await Deno.copy(buffer, source);
+   *
    * Because `copy()` is defined to read from `src` until `EOF`, it does not
    * treat an `EOF` from `read()` as an error to be reported.
+   *
+   * @param dst The destination to copy to
+   * @param src The source to copy from
    */
   export function copy(dst: Writer, src: Reader): Promise<number>;
 
@@ -634,7 +660,9 @@ declare namespace Deno {
    * as via opening or creating a file.  Closing a file when you are finished
    * with it is important to avoid leaking resources.
    *
-   *      Deno.close(4);
+   *      const file = await Deno.open("my_file.txt");
+   *      // do work with "file" object
+   *      Deno.close(file.rid);
    */
   export function close(rid: number): void;
 
@@ -715,12 +743,21 @@ declare namespace Deno {
    */
   export type OpenMode = "r" | "r+" | "w" | "w+" | "a" | "a+" | "x" | "x+";
 
-  /** **UNSTABLE**: newly added API
+  /** **UNSTABLE**: new API, yet to be vetted
    *
-   *  Check if a given resource is TTY. */
+   *  Check if a given resource id (`rid`) is a TTY.
+   *
+   *       //This example is system and context specific
+   *       const nonTTYRid = Deno.openSync("my_file.txt").rid;
+   *       const ttyRid = Deno.openSync("/dev/tty6").rid;
+   *       console.log(Deno.isatty(nonTTYRid)); // false
+   *       console.log(Deno.isatty(ttyRid)); // true
+   *       Deno.close(nonTTYRid);
+   *       Deno.close(ttyRid);
+   */
   export function isatty(rid: number): boolean;
 
-  /** **UNSTABLE**: newly added API
+  /** **UNSTABLE**: new API, yet to be vetted
    *
    *  Set TTY to be under raw mode or not. */
   export function setRaw(rid: number, mode: boolean): void;
@@ -729,12 +766,6 @@ declare namespace Deno {
    *
    * Based on [Go Buffer](https://golang.org/pkg/bytes/#Buffer). */
   export class Buffer implements Reader, SyncReader, Writer, SyncWriter {
-    private buf;
-    private off;
-    private _tryGrowByReslice;
-    private _reslice;
-    private _grow;
-
     constructor(ab?: ArrayBuffer);
     /** Returns a slice holding the unread portion of the buffer.
      *
@@ -975,7 +1006,7 @@ declare namespace Deno {
   /** Synchronously change owner of a regular file or directory. This functionality
    * is not available on Windows.
    *
-   *      Deno.chownSync('myFile.txt', 1000, 1002);
+   *      Deno.chownSync("myFile.txt", 1000, 1002);
    *
    * Requires `allow-write` permission.
    *
@@ -990,7 +1021,7 @@ declare namespace Deno {
   /** Change owner of a regular file or directory. This functionality
    * is not available on Windows.
    *
-   *      await Deno.chown('myFile.txt', 1000, 1002);
+   *      await Deno.chown("myFile.txt", 1000, 1002);
    *
    * Requires `allow-write` permission.
    *
@@ -1546,21 +1577,18 @@ declare namespace Deno {
    *
    * Requires `allow-plugin` permission. */
   export function openPlugin(filename: string): Plugin;
-
-  export type Transport = "tcp" | "udp";
-
-  export interface Addr {
-    transport: Transport;
+  export interface NetAddr {
+    transport: "tcp" | "udp";
     hostname: string;
     port: number;
   }
 
-  export interface UDPAddr {
-    port: number;
-    transport?: Transport;
-    hostname?: string;
+  export interface UnixAddr {
+    transport: "unix" | "unixpacket";
+    address: string;
   }
 
+  export type Addr = NetAddr | UnixAddr;
   /** **UNSTABLE**: Maybe remove `ShutdownMode` entirely.
    *
    * Corresponds to `SHUT_RD`, `SHUT_WR`, `SHUT_RDWR` on POSIX-like systems.
@@ -1569,7 +1597,7 @@ declare namespace Deno {
   export enum ShutdownMode {
     Read = 0,
     Write,
-    ReadWrite // TODO(ry) panics on ReadWrite.
+    ReadWrite, // TODO(ry) panics on ReadWrite.
   }
 
   /** **UNSTABLE**: Maybe should remove `how` parameter maybe remove
@@ -1587,16 +1615,8 @@ declare namespace Deno {
 
   /** **UNSTABLE**: new API, yet to be vetted.
    *
-   * Waits for the next message to the passed `rid` and writes it on the passed
-   * `Uint8Array`.
-   *
-   * Resolves to the number of bytes written and the remote address. */
-  export function recvfrom(rid: number, p: Uint8Array): Promise<[number, Addr]>;
-
-  /** **UNSTABLE**: new API, yet to be vetted.
-   *
    * A generic transport listener for message-oriented protocols. */
-  export interface UDPConn extends AsyncIterable<[Uint8Array, Addr]> {
+  export interface DatagramConn extends AsyncIterable<[Uint8Array, Addr]> {
     /** **UNSTABLE**: new API, yet to be vetted.
      *
      * Waits for and resolves to the next message to the `UDPConn`. */
@@ -1604,7 +1624,7 @@ declare namespace Deno {
     /** UNSTABLE: new API, yet to be vetted.
      *
      * Sends a message to the target. */
-    send(p: Uint8Array, addr: UDPAddr): Promise<void>;
+    send(p: Uint8Array, addr: Addr): Promise<void>;
     /** UNSTABLE: new API, yet to be vetted.
      *
      * Close closes the socket. Any pending message promises will be rejected
@@ -1624,6 +1644,7 @@ declare namespace Deno {
     close(): void;
     /** Return the address of the `Listener`. */
     readonly addr: Addr;
+
     [Symbol.asyncIterator](): AsyncIterator<Conn>;
   }
 
@@ -1648,13 +1669,12 @@ declare namespace Deno {
     /** A literal IP address or host name that can be resolved to an IP address.
      * If not specified, defaults to `0.0.0.0`. */
     hostname?: string;
-    /** Either `"tcp"` or `"udp"`. Defaults to `"tcp"`.
-     *
-     * In the future: `"tcp4"`, `"tcp6"`, `"udp4"`, `"udp6"`, `"ip"`, `"ip4"`,
-     * `"ip6"`, `"unix"`, `"unixgram"`, and `"unixpacket"`. */
-    transport?: Transport;
   }
 
+  export interface UnixListenOptions {
+    /** A Path to the Unix Socket. */
+    address: string;
+  }
   /** **UNSTABLE**: new API
    *
    * Listen announces on the local transport address.
@@ -1672,32 +1692,41 @@ declare namespace Deno {
    *
    * Listen announces on the local transport address.
    *
-   *      Deno.listen({ port: 80 })
-   *      Deno.listen({ hostname: "192.0.2.1", port: 80 })
-   *      Deno.listen({ hostname: "[2001:db8::1]", port: 80 });
-   *      Deno.listen({ hostname: "golang.org", port: 80, transport: "tcp" });
+   *     Deno.listen({ address: "/foo/bar.sock", transport: "unix" })
    *
-   * Requires `allow-net` permission. */
+   * Requires `allow-read` permission. */
   export function listen(
-    options: ListenOptions & { transport: "udp" }
-  ): UDPConn;
+    options: UnixListenOptions & { transport: "unix" }
+  ): Listener;
   /** **UNSTABLE**: new API
    *
    * Listen announces on the local transport address.
    *
-   *      Deno.listen({ port: 80 })
-   *      Deno.listen({ hostname: "192.0.2.1", port: 80 })
-   *      Deno.listen({ hostname: "[2001:db8::1]", port: 80 });
-   *      Deno.listen({ hostname: "golang.org", port: 80, transport: "tcp" });
+   *      Deno.listen({ port: 80, transport: "udp" })
+   *      Deno.listen({ hostname: "golang.org", port: 80, transport: "udp" });
    *
    * Requires `allow-net` permission. */
-  export function listen(options: ListenOptions): Listener | UDPConn;
+  export function listen(
+    options: ListenOptions & { transport: "udp" }
+  ): DatagramConn;
+  /** **UNSTABLE**: new API
+   *
+   * Listen announces on the local transport address.
+   *
+   *     Deno.listen({ address: "/foo/bar.sock", transport: "unixpacket" })
+   *
+   * Requires `allow-read` permission. */
+  export function listen(
+    options: UnixListenOptions & { transport: "unixpacket" }
+  ): DatagramConn;
 
   export interface ListenTLSOptions extends ListenOptions {
     /** Server certificate file. */
     certFile: string;
     /** Server public key file. */
     keyFile: string;
+
+    transport?: "tcp";
   }
 
   /** Listen announces on the local transport address over TLS (transport layer
@@ -1714,24 +1743,28 @@ declare namespace Deno {
     /** A literal IP address or host name that can be resolved to an IP address.
      * If not specified, defaults to `127.0.0.1`. */
     hostname?: string;
-    /** Either `"tcp"` or `"udp"`. Defaults to `"tcp"`.
-     *
-     * In the future: `"tcp4"`, `"tcp6"`, `"udp4"`, `"udp6"`, `"ip"`, `"ip4"`,
-     * `"ip6"`, `"unix"`, `"unixgram"`, and `"unixpacket"`. */
-    transport?: Transport;
+    transport?: "tcp";
+  }
+
+  export interface UnixConnectOptions {
+    transport: "unix";
+    address: string;
   }
 
   /**
    * Connects to the hostname (default is "127.0.0.1") and port on the named
    * transport (default is "tcp").
    *
-   *     const conn1 = await Deno.connect({ port: 80 })
-   *     const conn2 = await Deno.connect({ hostname: "192.0.2.1", port: 80 })
+   *     const conn1 = await Deno.connect({ port: 80 });
+   *     const conn2 = await Deno.connect({ hostname: "192.0.2.1", port: 80 });
    *     const conn3 = await Deno.connect({ hostname: "[2001:db8::1]", port: 80 });
-   *     const conn4 = await Deno.connect({ hostname: "golang.org", port: 80, transport: "tcp" })
+   *     const conn4 = await Deno.connect({ hostname: "golang.org", port: 80, transport: "tcp" });
+   *     const conn5 = await Deno.connect({ address: "/foo/bar.sock", transport: "unix" });
    *
-   * Requires `allow-net` permission. */
-  export function connect(options: ConnectOptions): Promise<Conn>;
+   * Requires `allow-net` permission for "tcp" and `allow-read` for unix. */
+  export function connect(
+    options: ConnectOptions | UnixConnectOptions
+  ): Promise<Conn>;
 
   export interface ConnectTLSOptions {
     /** The port to connect to. */
@@ -1743,9 +1776,18 @@ declare namespace Deno {
     certFile?: string;
   }
 
-  /** Establishes a secure connection over TLS (transport layer security).
+  /** Establishes a secure connection over TLS (transport layer security) using
+   * an optional cert file, hostname (default is "127.0.0.1") and port.  The
+   * cert file is optional and if not included Mozilla's root certificates will
+   * be used (see also https://github.com/ctz/webpki-roots for specifics)
    *
-   * Requires `allow-net` permission. */
+   *     const conn1 = await Deno.connectTLS({ port: 80 });
+   *     const conn2 = await Deno.connectTLS({ certFile: "./certs/my_custom_root_CA.pem", hostname: "192.0.2.1", port: 80 });
+   *     const conn3 = await Deno.connectTLS({ hostname: "[2001:db8::1]", port: 80 });
+   *     const conn4 = await Deno.connectTLS({ certFile: "./certs/my_custom_root_CA.pem", hostname: "golang.org", port: 80});
+   *
+   * Requires `allow-net` permission.
+   */
   export function connectTLS(options: ConnectTLSOptions): Promise<Conn>;
 
   /** **UNSTABLE**: not sure if broken or not */
@@ -1803,9 +1845,23 @@ declare namespace Deno {
     paths: string[];
   }
 
-  /** **UNSTABLE**: new API. Needs docs.
+  /** **UNSTABLE**: new API, yet to be vetted.
    *
-   * Recursive option is `true` by default. */
+   * Watch for file system events against one or more `paths`, which can be files
+   * or directories.  These paths must exist already.  One user action (e.g.
+   * `touch test.file`) can  generate multiple file system events.  Likewise,
+   * one user action can result in multiple file paths in one event (e.g. `mv
+   * old_name.txt new_name.txt`).  Recursive option is `true` by default and,
+   * for directories, will watch the specified directory and all sub directories.
+   * Note that the exact ordering of the events can vary between operating systems.
+   *
+   *       const iter = Deno.fsEvents("/");
+   *       for await (const event of iter) {
+   *          console.log(">>>> event", event);  //e.g. { kind: "create", paths: [ "/foo.txt" ] }
+   *       }
+   *
+   * Requires `allow-read` permission.
+   */
   export function fsEvents(
     paths: string | string[],
     options?: { recursive: boolean }
@@ -1823,15 +1879,22 @@ declare namespace Deno {
    * the stream to `/dev/null`. */
   type ProcessStdio = "inherit" | "piped" | "null";
 
-  /** **UNSTABLE**: the `signo` argument maybe shouldn't be number. Should throw
-   * on Windows instead of silently succeeding.
+  /** **UNSTABLE**: The `signo` argument may change to require the Deno.Signal
+   * enum.
    *
-   * Send a signal to process under given `pid`. Linux/Mac OS only currently.
+   * Send a signal to process under given `pid`. This functionality currently
+   * only works on Linux and Mac OS.
    *
    * If `pid` is negative, the signal will be sent to the process group
    * identified by `pid`.
    *
-   * Currently no-op on Windows.
+   *      const p = Deno.run({
+   *        cmd: ["python", "-c", "from time import sleep; sleep(10000)"]
+   *      });
+   *
+   *      Deno.kill(p.pid, Deno.Signal.SIGINT);
+   *
+   * Throws Error (not yet implemented) on Windows
    *
    * Requires `allow-run` permission. */
   export function kill(pid: number, signo: number): void;
@@ -1929,7 +1992,7 @@ declare namespace Deno {
     SIGWINCH = 28,
     SIGIO = 29,
     SIGPWR = 30,
-    SIGSYS = 31
+    SIGSYS = 31,
   }
   enum MacOSSignal {
     SIGHUP = 1,
@@ -1962,7 +2025,7 @@ declare namespace Deno {
     SIGWINCH = 28,
     SIGINFO = 29,
     SIGUSR1 = 30,
-    SIGUSR2 = 31
+    SIGUSR2 = 31,
   }
 
   /** **UNSTABLE**: make platform independent.
@@ -1970,20 +2033,45 @@ declare namespace Deno {
    * Signals numbers. This is platform dependent. */
   export const Signal: typeof MacOSSignal | typeof LinuxSignal;
 
-  /** **UNSTABLE**: rename to `InspectOptions`. */
-  interface ConsoleOptions {
+  interface InspectOptions {
     showHidden?: boolean;
     depth?: number;
     colors?: boolean;
     indentLevel?: number;
   }
 
-  /** **UNSTABLE**: `ConsoleOptions` rename to `InspectOptions`. Also the exact
-   * form of string output subject to change.
+  /** **UNSTABLE**: The exact form of the string output is under consideration
+   * and may change.
    *
-   * Converts input into string that has the same format as printed by
-   * `console.log()`. */
-  export function inspect(value: unknown, options?: ConsoleOptions): string;
+   * Converts the input into a string that has the same format as printed by
+   * `console.log()`.
+   *
+   *      const obj = {};
+   *      obj.propA = 10;
+   *      obj.propB = "hello"
+   *      const objAsString = Deno.inspect(obj); //{ propA: 10, propB: "hello" }
+   *      console.log(obj);  //prints same value as objAsString, e.g. { propA: 10, propB: "hello" }
+   *
+   * You can also register custom inspect functions, via the `customInspect` Deno
+   * symbol on objects, to control and customize the output.
+   *
+   *      class A {
+   *        x = 10;
+   *        y = "hello";
+   *        [Deno.symbols.customInspect](): string {
+   *          return "x=" + this.x + ", y=" + this.y;
+   *        }
+   *      }
+   *
+   *      const inStringFormat = Deno.inspect(new A()); //"x=10, y=hello"
+   *      console.log(inStringFormat);  //prints "x=10, y=hello"
+   *
+   * Finally, a number of output options are also available.
+   *
+   *      const out = Deno.inspect(obj, {showHidden: true, depth: 4, colors: true, indentLevel: 2});
+   *
+   */
+  export function inspect(value: unknown, options?: InspectOptions): string;
 
   export type OperatingSystem = "mac" | "win" | "linux";
 
@@ -2014,7 +2102,7 @@ declare namespace Deno {
     Info = 2,
     Error = 3,
     Warning = 4,
-    Suggestion = 5
+    Suggestion = 5,
   }
 
   export interface DiagnosticMessageChain {
@@ -2059,7 +2147,13 @@ declare namespace Deno {
 
   /** **UNSTABLE**: new API, yet to be vetted.
    *
-   * Format an array of diagnostic items and return them as a single string.
+   * Format an array of diagnostic items and return them as a single string in a
+   * user friendly format.
+   *
+   *       const [diagnostics, result] = Deno.compile("file_with_compile_issues.ts");
+   *       console.table(diagnostics);  //Prints raw diagnostic data
+   *       console.log(Deno.formatDiagnostics(diagnostics));  //User friendly output of diagnostics
+   *
    * @param items An array of diagnostic items to format
    */
   export function formatDiagnostics(items: DiagnosticItem[]): string;
