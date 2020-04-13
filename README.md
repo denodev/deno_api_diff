@@ -1,4 +1,4 @@
-# deno_diff
+# deno_api_diff
 
 Easier Deno upgrades by clearly expose changes from a version to another. 🚀
 
