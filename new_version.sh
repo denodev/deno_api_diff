@@ -48,8 +48,8 @@ fi
 git checkout master
 
 # Update README.md
-diffUrl="[${lastGitBranch}...${newVersion}](https://github.com/justjavac/deno_diff/compare/${lastGitBranch}...${newVersion})"
-patchUrl="[${lastGitBranch}...${newVersion}](https://github.com/justjavac/deno_diff/compare/${lastGitBranch}...${newVersion}.diff)"
+diffUrl="[${lastGitBranch}...${newVersion}](https://github.com/denodev/deno_api_diff/compare/${lastGitBranch}...${newVersion})"
+patchUrl="[${lastGitBranch}...${newVersion}](https://github.com/denodev/deno_api_diff/compare/${lastGitBranch}...${newVersion}.diff)"
 
 # Insert a row in the version table
 ## Insert a new line (a bit tricky but compatible with either OSX sed and GNU sed)
